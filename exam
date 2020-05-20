@@ -1,0 +1,248 @@
+question 1-----
+
+adhochttpd.dockerfile---
+
+FROM centos
+MAINTAINER riyasoni5990@gmail.com
+RUN yum install httpd -y
+RUN mkdir /mycode
+ENV x=app
+COPY app1 /mycode/app1
+COPY app2 /mycode/app2
+COPY start.sh /mycode/start.sh
+RUN chmod +x /mycode/start.sh
+EXPOSE 80
+ENTRYPOINT ["/bin/bash","/mycode/start.sh"]
+ 
+start.sh---
+#!/bin/bash
+if      ["$x"=="app1"]
+then
+        cp -rf /mycode/app1/* /var/www/html/
+        httpd -DFOREGROUND
+
+elif     ["$x"=="app2"]
+then
+        cp -rf /mycode/app2/* /var/www/html/
+        httpd -DFOREGROUND
+
+else
+        echo "sorry wrong page" >/var/www/html/index.html
+        httpd -DFOREGROUND
+fi
+
+****to build the docker file 
+docker build -t may2020q1:v1 -f adhochttpd.dockerfile .
+*****to tag image
+docker tag may2020q1:v1 riya2525/may2020q1:v1
+*** to push the image
+docker push riya2525/may2020q1:v1
+
+#####q2#####
+podfile---q2.yaml
+***command to create--kubectl run adhocpod1  --image=nginx --port 80 --dry-run -o yaml >q2.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    adhoc: riyaq2
+  name: adhocpod1
+spec:
+  containers:
+  - image: nginx
+    name: adhocpod1
+    ports:
+    - containerPort: 80
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+***command to create svc file--
+kubectl expose pods adhocpod1 --type NodePort --port 80
+***command to check svc port--kubectl get svc
+
+
+ ####q3######
+podfile--q3.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    adhoc: riyaq3
+  name: adhocpod1
+spec:
+  nodeSelector:
+   kubernetes.io/hostname: ip-172-31-41-104.ec2.internal
+  containers:
+  - image: riya2525/may2020q1:v1
+    name: adhocpod2
+    ports:
+    - containerPort: 80
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+**to create svc form running pod ---kubectl expose pods adhocpod1 --type NodePort --port 80
+***now you can acces with port no --30902
+
+#####q4#####
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+ name: adhocrsriya4
+spec:
+ selector:
+  matchLabels:
+   adhoc: riyaq4
+ replicas: 1
+ template:
+  metadata:
+   name: mypod
+   labels:
+    x: hellors
+  spec:
+   containers:
+    - name: adhocpod3
+      image: riya2525/may2020q1:v1
+      ports:
+       -containerPort: 80
+**to create svc--kubectl expose pods adhocrsriya4 --type LoadBalancer --port 80
+
+###q5#####
+Deploymentfile--q5dep1.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adhocdepriya5
+  labels:
+    x: hello
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      adhoc: riyaq5
+  template:
+    metadata:
+      labels:
+        app: helloc
+    spec:
+      containers:
+      - name: adhocpod4
+        image: riya2525/may2020q1:v1
+        ports:
+        - containerPort: 80
+~                 
+***to create svc--kubectl expose pods adhocdepriya5 --type LoadBalancer --port 80
+
+
+###q6####
+***podfile--portainer.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    adhoc: riyaq6
+  name: adhocpod6
+spec:
+  nodeSelector:
+   kubernetes.io/hostname: ip-172-31-41-74.ec2.internal
+  containers:
+  - image: portainer/portainer
+    name: adhocpod6
+    ports:
+    - containerPort: 9000
+   resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+***creating svc----kubectl expose pods adhocpod6 --type NodePort --port 9000
+
+####q7####
+
+podfile----q7.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    adhoc: riyaq7
+  name: adhocpod7
+spec:
+  volumes:
+   - name: riyavol1
+     emptyDir: {}
+  containers:
+    volumeMounts:
+     - name: riyavol1
+       mountPath: /mnt/
+     command: ["/bin/sh","-c","while true;do date>>/mnt/date.txt;sleep 3;done"]
+  - image: alpine
+    name: adhocpod7
+    ports:
+    - containerPort: 80
+    
+   **run file---kubectl create -f  q7.yaml >>adhocoutput.txt
+   
+   ###q8###
+    *** this is correct file****
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:   #  is important if you want your application can get the traffic from service 
+   x: hello  # label always be in key: value pair and it must be unique 
+  name: podexam  # must be unique
+spec:
+  containers:
+  - image: nginx
+    name: pod1
+    ports:
+    - containerPort: 80
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Never
+status: {}
+
+ ****NOw create pod ---kubectl create pods -f podexam.yaml
+ **** to craete svc----kubectl expose pods podexam --type NodePort --port 80
+  
+  
+####q9####
+  
+**create pod file---- kubectl run jenkinspod1  --image=jenkins --port 8080 --dry-run -o yaml >q2.yaml
+  
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: jenkinspod1
+  name: jenkinspod1
+spec:
+  containers:
+  - image: jenkins
+    name: jenkinspod1
+    ports:
+    - containerPort: 8080
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+****now crete svc after
+--kubectl create -f jenkins.yaml
+
+**create svc----kubectl expose pods jenkinspod1 --type NodePort --port 8080
+---kubectl get svc
+---acces with --31792
